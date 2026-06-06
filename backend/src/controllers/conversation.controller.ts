@@ -3,13 +3,7 @@ import { VerifiedRequest } from "../types/req.types";
 import { db } from "..";
 import { conversationsTable, messagesTable } from "../db/schema";
 import { and, desc, eq, lt, or } from "drizzle-orm";
-import {
-  BAD_REQUEST,
-  CREATED,
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  OK,
-} from "http-status";
+import httpStatus from "http-status";
 import { customerSupportChat } from "../ai";
 
 export const getConversations = async (req: VerifiedRequest, res: Response) => {
@@ -25,7 +19,7 @@ export const getConversations = async (req: VerifiedRequest, res: Response) => {
       const separatorIndex = cursor.lastIndexOf("|");
 
       if (separatorIndex === -1) {
-        res.status(BAD_REQUEST).send({
+        res.status(httpStatus.BAD_REQUEST).send({
           error: "Invalid cursor format",
         });
         return;
@@ -36,7 +30,7 @@ export const getConversations = async (req: VerifiedRequest, res: Response) => {
       const parsedTimestamp = new Date(createdAtPart);
 
       if (Number.isNaN(parsedTimestamp.getTime()) || !idPart) {
-        res.status(BAD_REQUEST).send({
+        res.status(httpStatus.BAD_REQUEST).send({
           error: "Invalid cursor value",
         });
         return;
@@ -71,7 +65,7 @@ export const getConversations = async (req: VerifiedRequest, res: Response) => {
       .limit(PAGE_SIZE);
 
     if (rows.length === 0) {
-      res.status(OK).send({
+      res.status(httpStatus.OK).send({
         conversations: [],
         nextCursor: null,
       });
@@ -107,12 +101,12 @@ export const getConversations = async (req: VerifiedRequest, res: Response) => {
       ? `${new Date(lastRow.createdAt).toISOString()}|${lastRow.id}`
       : null;
 
-    res.status(OK).send({
+    res.status(httpStatus.OK).send({
       conversations: Array.from(groupedByDate.values()),
       nextCursor,
     });
   } catch (error) {
-    res.status(INTERNAL_SERVER_ERROR).send({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
       error: "Cannot fetch conversations, please try again later",
     });
   }
@@ -124,7 +118,7 @@ export const getConversation = async (req: VerifiedRequest, res: Response) => {
     const conversationId = req.params.conversationId as string;
 
     if (!conversationId) {
-      res.status(NOT_FOUND).send({
+      res.status(httpStatus.NOT_FOUND).send({
         error: "Conversation ID is required",
       });
       return;
@@ -145,17 +139,17 @@ export const getConversation = async (req: VerifiedRequest, res: Response) => {
       );
 
     if (!conversation || conversation.length === 0) {
-      res.status(NOT_FOUND).send({
+      res.status(httpStatus.NOT_FOUND).send({
         error: "Conversation not found",
       });
       return;
     }
 
-    res.status(OK).send({
+    res.status(httpStatus.OK).send({
       conversation,
     });
   } catch (error) {
-    res.status(INTERNAL_SERVER_ERROR).send({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
       error: "Cannot fetch conversation, please try again later",
     });
   }
@@ -168,7 +162,7 @@ export const chat = async (req: VerifiedRequest, res: Response) => {
     const { message } = req.body;
 
     if (!message) {
-      res.status(BAD_REQUEST).send({
+      res.status(httpStatus.BAD_REQUEST).send({
         error: "Message is required",
       });
       return;
@@ -203,7 +197,7 @@ export const chat = async (req: VerifiedRequest, res: Response) => {
         })
         .returning();
 
-      res.status(CREATED).send({
+      res.status(httpStatus.CREATED).send({
         conversationId: conversation[0].id,
       });
     } else {
@@ -227,12 +221,12 @@ export const chat = async (req: VerifiedRequest, res: Response) => {
         })
         .returning();
 
-      res.status(CREATED).send({
+      res.status(httpStatus.CREATED).send({
         data: chatSupportResponse,
       });
     }
   } catch (error) {
-    res.status(INTERNAL_SERVER_ERROR).send({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
       error: "Cannot send message, please try again later",
     });
   }
@@ -247,7 +241,7 @@ export const deleteConversation = async (
     const conversationId = req.params.conversationId as string;
 
     if (!conversationId) {
-      res.status(NOT_FOUND).send({
+      res.status(httpStatus.NOT_FOUND).send({
         error: "Conversation ID is required",
       });
       return;
@@ -264,7 +258,7 @@ export const deleteConversation = async (
       );
 
     if (!conversation || conversation.length === 0) {
-      res.status(NOT_FOUND).send({
+      res.status(httpStatus.NOT_FOUND).send({
         error: "Conversation not found",
       });
       return;
@@ -279,11 +273,11 @@ export const deleteConversation = async (
         ),
       );
 
-    res.status(OK).send({
+    res.status(httpStatus.OK).send({
       message: "Conversation deleted successfully",
     });
   } catch (error) {
-    res.status(INTERNAL_SERVER_ERROR).send({
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
       error: "Cannot delete conversation, please try again later",
     });
   }
