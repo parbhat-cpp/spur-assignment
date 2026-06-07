@@ -1,4 +1,4 @@
-import { ADD_SUGGESTED_TITLE, SYSTEM_PROMPT } from "./constants";
+import { ADD_SUGGESTED_TITLE, SYSTEM_PROMPT, MAX_QUERY_LENGTH, QUERY_TRUNCATION_WARNING } from "./constants";
 import "dotenv/config";
 import z from "zod";
 import Groq from "groq-sdk";
@@ -11,11 +11,21 @@ const ResponseSchema = z.object({
   suggested_title: z.string().optional(),
 });
 
+const truncateQuery = (message: string): string => {
+  if (message.length > MAX_QUERY_LENGTH) {
+    return message.substring(0, MAX_QUERY_LENGTH) + QUERY_TRUNCATION_WARNING;
+  }
+  return message;
+};
+
 export const customerSupportChat = async (
   generateTitle: boolean,
   userMessage: string,
 ) => {
   try {
+    // Truncate query if too long
+    const truncatedMessage = truncateQuery(userMessage);
+
     const rawResponse = await groq.chat.completions.create({
       messages: [
         {
@@ -26,7 +36,7 @@ export const customerSupportChat = async (
         },
         {
           role: "user",
-          content: userMessage,
+          content: truncatedMessage,
         },
       ],
       model: "meta-llama/llama-4-scout-17b-16e-instruct",

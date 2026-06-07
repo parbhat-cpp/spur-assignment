@@ -36,3 +36,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # OS Metadata (Mac/Windows local files)
 .DS_Store
 Thumbs.db
+
+dist/
+build/
+out/
