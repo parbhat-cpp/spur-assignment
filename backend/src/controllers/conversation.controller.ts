@@ -146,7 +146,7 @@ export const getConversation = async (req: VerifiedRequest, res: Response) => {
     }
 
     res.status(httpStatus.OK).send({
-      conversation,
+      data: conversation,
     });
   } catch (error) {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
@@ -175,7 +175,7 @@ export const chat = async (req: VerifiedRequest, res: Response) => {
         .insert(conversationsTable)
         .values({
           userId,
-          title: chatSupportResponse.suggested_title,
+          title: chatSupportResponse.suggested_title || "New Conversation",
         })
         .returning();
 
@@ -198,7 +198,7 @@ export const chat = async (req: VerifiedRequest, res: Response) => {
         .returning();
 
       res.status(httpStatus.CREATED).send({
-        conversationId: conversation[0].id,
+        data: { conversationId: conversation[0].id },
       });
     } else {
       const chatSupportResponse = await customerSupportChat(false, message);
